@@ -1,0 +1,51 @@
+[tool.poetry]
+name = "turtle"
+version = "0.0.0"  # placeholder for the real version, which is retrieved from git tags
+description = "Who's a Better Writer: A.I. or Humans? Inspired by the New York Times."
+authors = ["Shon Verch <contact@shonverch.com>"]
+license = "MIT"
+readme = "README.md"
+
+packages = [
+    { include = "turtle", from = "src" }
+]
+include = [
+    { path = "tests", format = "sdist" }
+]
+exclude = [
+    "**/*.pyc",
+    "**/*.pyi",
+]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+[tool.poetry.dev-dependencies]
+pydocstyle = "^6.1.1"
+autopep8 = "^1.6.0"
+flake8 = "^4.0.1"
+pytest = "^7.1.2"
+pytest-cov = "^3.0.0"
+pytest-mock = "^3.7.0"
+pytest-httpserver = "^1.0.4"
+
+[tool.pyright]
+include = ["turtle/**", "tests/**"]
+exclude = ["**/__pycache__"]
+
+typeCheckingMode = "basic"
+pythonVersion = "3.13"
+pythonPlatform = "All"
+typeshedPath = "typeshed"
+enableTypeIgnoreComments = true
+
+# This is required as the CI pre-commit does not download required modules
+reportMissingImports = "none"
+
+[tool.codespell]
+quiet-level = 2
+skip = "poetry.lock,./.git/*,./tests/*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

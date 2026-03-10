@@ -1,0 +1,47 @@
+FROM python:3.13.0-slim-buster AS app
+
+WORKDIR /app
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends build-essential curl libpq-dev \
+  && apt-get install -y git vim \
+  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man \
+  && apt-get clean \
+  && useradd --create-home python \
+  && chown python:python -R /app
+
+RUN chmod -R 777 /usr/local/src
+
+USER python
+
+# Install poetry
+RUN pip3 install --user --no-cache-dir "poetry>=1.0.0"
+ENV PATH="/home/python/.local/bin:${PATH}"
+
+# Copy pyproject.toml and poetry.lock
+COPY --chown=python:python pyproject.toml poetry.lock ./
+
+# Install dependencies only
+RUN poetry install --no-interaction --no-ansi --no-root --only main
+
+ARG FLASK_DEBUG="false"
+ENV FLASK_DEBUG="${FLASK_DEBUG}" \
+    FLASK_APP="turtle.app" \
+    FLASK_SKIP_DOTENV="true" \
+    PYTHONUNBUFFERED="true" \
+    PYTHONPATH="." \
+    PATH="${PATH}:/home/python/.local/bin" \
+    USER="python"
+
+COPY --chown=python:python . .
+
+RUN if [ "${FLASK_DEBUG}" = "false" ]; then \
+  ln -s /public /app/public && rm -rf /app/public; fi
+
+EXPOSE 5000
+
+# Install project
+RUN poetry install --no-interaction --no-ansi --only main
+
+CMD ["poetry", "run",\
+     "gunicorn", "-c", "python:config.gunicorn", "turtle.app:create_app()"]
